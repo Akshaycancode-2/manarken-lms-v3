@@ -196,8 +196,7 @@ function OverallPage() {
               <Select
                 value={schoolSort}
                 onChange={setSchoolSort}
-                options={["top", "bottom", "alpha"]}
-                placeholder=""
+                options={["Top to bottom", "Bottom to top", "Alphabetical"]}
               />
             </div>
           }
