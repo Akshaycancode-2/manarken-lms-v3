@@ -110,6 +110,16 @@ function OverallPage() {
     };
   }, [period, subjects, classes, leadSel, regionSel]);
 
+  const sortedSchools = useMemo(() => {
+    const items = [...data.bySchool];
+    if (schoolSort === "Bottom to top") {
+      items.sort((a, b) => a.percent - b.percent || a.value - b.value);
+    } else if (schoolSort === "Alphabetical") {
+      items.sort((a, b) => a.label.localeCompare(b.label));
+    }
+    return items;
+  }, [data.bySchool, schoolSort]);
+
   return (
     <Shell>
       <PageTitle title="Overall Manarkeni LMS consumption summary" />
