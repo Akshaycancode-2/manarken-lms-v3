@@ -10,6 +10,7 @@ import {
   Panel,
   PeriodPicker,
   SearchableBarList,
+  Select,
   Shell,
 } from "@/components/dashboard/ui";
 import { courseClasses, groupBy } from "@/lib/lms";
