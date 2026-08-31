@@ -54,6 +54,7 @@ function OverallPage() {
   const [classes, setClasses] = useState<string[]>([]);
   const [leadSel, setLeadSel] = useState<string[]>([]);
   const [regionSel, setRegionSel] = useState<string[]>([]);
+  const [schoolSort, setSchoolSort] = useState("top");
 
   const data = useMemo(() => {
     const matches = (x: (typeof teachers)[number]) =>
