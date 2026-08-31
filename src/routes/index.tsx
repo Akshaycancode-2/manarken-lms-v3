@@ -10,6 +10,7 @@ import {
   Panel,
   PeriodPicker,
   SearchableBarList,
+  Select,
   Shell,
 } from "@/components/dashboard/ui";
 import { courseClasses, groupBy } from "@/lib/lms";
@@ -53,6 +54,7 @@ function OverallPage() {
   const [classes, setClasses] = useState<string[]>([]);
   const [leadSel, setLeadSel] = useState<string[]>([]);
   const [regionSel, setRegionSel] = useState<string[]>([]);
+  const [schoolSort, setSchoolSort] = useState("Top to bottom");
 
   const data = useMemo(() => {
     const matches = (x: (typeof teachers)[number]) =>
@@ -107,6 +109,16 @@ function OverallPage() {
       byLead: rank((x) => x.Lead),
     };
   }, [period, subjects, classes, leadSel, regionSel]);
+
+  const sortedSchools = useMemo(() => {
+    const items = [...data.bySchool];
+    if (schoolSort === "Bottom to top") {
+      items.sort((a, b) => a.percent - b.percent || a.value - b.value);
+    } else if (schoolSort === "Alphabetical") {
+      items.sort((a, b) => a.label.localeCompare(b.label));
+    }
+    return items;
+  }, [data.bySchool, schoolSort]);
 
   return (
     <Shell>
@@ -178,11 +190,31 @@ function OverallPage() {
             tone="positive"
           />
         </KpiGrid>
+        <p className="mt-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">Eligible Teachers</span> are teachers
+          mapped to courses with at least one video or one assessment such that their consumption
+          can be tracked.
+        </p>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Panel title="School-wise consumption ranking (top to bottom)">
-          <SearchableBarList items={data.bySchool} placeholder="Search school / district…" />
+        <Panel
+          title="School-wise consumption ranking"
+          action={
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Sort</span>
+              <Select
+                value={schoolSort}
+                onChange={setSchoolSort}
+                options={["Top to bottom", "Bottom to top", "Alphabetical"]}
+              />
+            </div>
+          }
+        >
+          <SearchableBarList
+            items={sortedSchools}
+            placeholder="Search school / district…"
+          />
         </Panel>
         <Panel title={`Lead-wise consumption ranking (${leads.length} leads)`}>
           <SearchableBarList items={data.byLead} placeholder="Search lead…" />

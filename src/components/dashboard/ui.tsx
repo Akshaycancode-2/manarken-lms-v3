@@ -290,12 +290,21 @@ export function Kpi({
   );
 }
 
-export function Panel({ title, children }: { title: string; children: ReactNode }) {
+export function Panel({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <section className="rounded-xl border border-border bg-card">
-      <h2 className="border-b border-border px-4 py-3 text-sm font-semibold text-foreground">
-        {title}
-      </h2>
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {action}
+      </div>
       <div className="p-4">{children}</div>
     </section>
   );
