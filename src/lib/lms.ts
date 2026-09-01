@@ -403,6 +403,13 @@ export function createDataset(raw: RawData) {
     consumed,
     loggedIn: consumed,
     heatRow,
+    ignoredCourseIds,
+    meta,
+    watchedVideoAll,
+    didAssessmentAll,
+    consumedAll,
+    heatRowAll,
+
     watchedCourseVideo,
     attemptedCourseAssessment,
     leads,
