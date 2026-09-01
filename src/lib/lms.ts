@@ -166,6 +166,12 @@ export function createDataset(raw: RawData) {
   const courses = raw.courses ?? [];
   const videoRows = raw.video ?? [];
   const assessmentRows = raw.assessment ?? [];
+  const ignoredCourseIds = new Set<number>(raw.ignoredCourses ?? []);
+  const meta: DataMeta = {
+    teacherDate: raw.meta?.teacherDate ?? null,
+    consumptionDate: raw.meta?.consumptionDate ?? null,
+  };
+
 
   /** Region now comes from the source data (Teacher Data column B). */
   const regionOf = (t: Teacher) => (t.Region ?? "").trim() || "Unassigned";
