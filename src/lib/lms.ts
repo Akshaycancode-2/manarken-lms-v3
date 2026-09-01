@@ -52,12 +52,21 @@ export type AssessmentRow = {
   date: string | null;
 };
 
+export type DataMeta = {
+  teacherDate: string | null;
+  consumptionDate: string | null;
+};
+
 export type RawData = {
   teachers: Teacher[];
   courses: Course[];
+  /** Course IDs excluded from Overall / School / Region consumption counting. */
+  ignoredCourses?: number[];
   video: VideoRow[];
   assessment: AssessmentRow[];
+  meta?: DataMeta;
 };
+
 
 export type Period = { from: string; to: string };
 
@@ -84,6 +93,18 @@ export type HeatRow = {
   overallAssessmentUsage: number; // M = K/D
   remarks: string;
 };
+
+/** Heat row for pages that no longer use course mapping (all teachers count). */
+export type HeatRowAll = {
+  key: string;
+  total: number;
+  videoConsumers: number;
+  overallVideoUsage: number;
+  assessmentConsumers: number;
+  overallAssessmentUsage: number;
+  remarks: string;
+};
+
 
 /**
  * A course row can serve several standards ("11,12"). Some exports drop the
@@ -145,6 +166,12 @@ export function createDataset(raw: RawData) {
   const courses = raw.courses ?? [];
   const videoRows = raw.video ?? [];
   const assessmentRows = raw.assessment ?? [];
+  const ignoredCourseIds = new Set<number>(raw.ignoredCourses ?? []);
+  const meta: DataMeta = {
+    teacherDate: raw.meta?.teacherDate ?? null,
+    consumptionDate: raw.meta?.consumptionDate ?? null,
+  };
+
 
   /** Region now comes from the source data (Teacher Data column B). */
   const regionOf = (t: Teacher) => (t.Region ?? "").trim() || "Unassigned";
@@ -237,6 +264,48 @@ export function createDataset(raw: RawData) {
   }
 
   const consumed = (t: Teacher, p: Period) => watchedVideo(t, p) || didAssessment(t, p);
+
+  // ---- Non-mapped (Overall / School / Region) consumption ---------------
+  // These pages ignore course mapping entirely: every teacher counts, and any
+  // consumption on a course that is NOT in the Ignored-Courses sheet counts.
+  function watchedVideoAll(t: Teacher, p: Period) {
+    return videoRowsFor(t).some(
+      (v) =>
+        !ignoredCourseIds.has(v.course_id) &&
+        (inPeriod(v.last_watched, p) || inPeriod(v.first_watched, p)),
+    );
+  }
+
+  function didAssessmentAll(t: Teacher, p: Period) {
+    return assessmentRowsFor(t).some(
+      (a) =>
+        !ignoredCourseIds.has(a.course_id) &&
+        a.attended_questions > 0 &&
+        inPeriod(a.date, p),
+    );
+  }
+
+  const consumedAll = (t: Teacher, p: Period) =>
+    watchedVideoAll(t, p) || didAssessmentAll(t, p);
+
+  function heatRowAll(key: string, group: Teacher[], p: Period): HeatRowAll {
+    const g = group.filter((t) => watchedVideoAll(t, p)).length;
+    const k = group.filter((t) => didAssessmentAll(t, p)).length;
+    const remarks: string[] = [];
+    if (g === 0) remarks.push("Zero video usage");
+    if (k === 0) remarks.push("Zero assessment usage");
+    return {
+      key,
+      total: group.length,
+      videoConsumers: g,
+      overallVideoUsage: pct(g, group.length),
+      assessmentConsumers: k,
+      overallAssessmentUsage: pct(k, group.length),
+      remarks: remarks.join("; ") || "—",
+    };
+  }
+
+
 
 
   function heatRow(key: string, group: Teacher[], p: Period): HeatRow {
@@ -334,6 +403,13 @@ export function createDataset(raw: RawData) {
     consumed,
     loggedIn: consumed,
     heatRow,
+    ignoredCourseIds,
+    meta,
+    watchedVideoAll,
+    didAssessmentAll,
+    consumedAll,
+    heatRowAll,
+
     watchedCourseVideo,
     attemptedCourseAssessment,
     leads,
