@@ -52,12 +52,21 @@ export type AssessmentRow = {
   date: string | null;
 };
 
+export type DataMeta = {
+  teacherDate: string | null;
+  consumptionDate: string | null;
+};
+
 export type RawData = {
   teachers: Teacher[];
   courses: Course[];
+  /** Course IDs excluded from Overall / School / Region consumption counting. */
+  ignoredCourses?: number[];
   video: VideoRow[];
   assessment: AssessmentRow[];
+  meta?: DataMeta;
 };
+
 
 export type Period = { from: string; to: string };
 
