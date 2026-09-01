@@ -94,6 +94,18 @@ export type HeatRow = {
   remarks: string;
 };
 
+/** Heat row for pages that no longer use course mapping (all teachers count). */
+export type HeatRowAll = {
+  key: string;
+  total: number;
+  videoConsumers: number;
+  overallVideoUsage: number;
+  assessmentConsumers: number;
+  overallAssessmentUsage: number;
+  remarks: string;
+};
+
+
 /**
  * A course row can serve several standards ("11,12"). Some exports drop the
  * zero from "10", so a bare "1" in such a list means class 10.
