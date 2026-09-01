@@ -259,6 +259,48 @@ export function createDataset(raw: RawData) {
 
   const consumed = (t: Teacher, p: Period) => watchedVideo(t, p) || didAssessment(t, p);
 
+  // ---- Non-mapped (Overall / School / Region) consumption ---------------
+  // These pages ignore course mapping entirely: every teacher counts, and any
+  // consumption on a course that is NOT in the Ignored-Courses sheet counts.
+  function watchedVideoAll(t: Teacher, p: Period) {
+    return videoRowsFor(t).some(
+      (v) =>
+        !ignoredCourseIds.has(v.course_id) &&
+        (inPeriod(v.last_watched, p) || inPeriod(v.first_watched, p)),
+    );
+  }
+
+  function didAssessmentAll(t: Teacher, p: Period) {
+    return assessmentRowsFor(t).some(
+      (a) =>
+        !ignoredCourseIds.has(a.course_id) &&
+        a.attended_questions > 0 &&
+        inPeriod(a.date, p),
+    );
+  }
+
+  const consumedAll = (t: Teacher, p: Period) =>
+    watchedVideoAll(t, p) || didAssessmentAll(t, p);
+
+  function heatRowAll(key: string, group: Teacher[], p: Period): HeatRowAll {
+    const g = group.filter((t) => watchedVideoAll(t, p)).length;
+    const k = group.filter((t) => didAssessmentAll(t, p)).length;
+    const remarks: string[] = [];
+    if (g === 0) remarks.push("Zero video usage");
+    if (k === 0) remarks.push("Zero assessment usage");
+    return {
+      key,
+      total: group.length,
+      videoConsumers: g,
+      overallVideoUsage: pct(g, group.length),
+      assessmentConsumers: k,
+      overallAssessmentUsage: pct(k, group.length),
+      remarks: remarks.join("; ") || "—",
+    };
+  }
+
+
+
 
   function heatRow(key: string, group: Teacher[], p: Period): HeatRow {
     const assigned = group.filter((t) => mappedCoursesFor(t["Staff ID"]).length > 0);
